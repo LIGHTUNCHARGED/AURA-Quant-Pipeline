@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manit Arora | Live Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,500;0,700;0,800;1,500&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="scanner">
+    <header class="site-header">
+        <a class="brand" href="index.html" aria-label="Strategy home">
+            <span class="brand-mark">MA</span>
+            <span>
+                <strong>Manit Arora</strong>
+                <small>Aura Quant Pipeline</small>
+            </span>
+        </a>
+        <nav class="nav-actions" aria-label="Primary navigation">
+            <a class="nav-link" href="index.html">Architecture</a>
+            <a class="nav-link active" href="scanner.html">Live Scanner</a>
+        </nav>
+    </header>
+
+    <main class="scanner-shell">
+        <section class="scanner-hero scanner-hero-grid">
+            <div class="scanner-copy">
+                <p class="eyebrow">Execution console</p>
+                <h1>
+                    <span>Run the live</span>
+                    <span>RS-Beta-Alpha</span>
+                    <span>market scan.</span>
+                </h1>
+                <p class="hero-text">
+                    Trigger the FastAPI pipeline, monitor cache and scan status, then inspect the qualified symbols with alpha, beta, relative strength, allocation weights, and ATR stop levels.
+                </p>
+            </div>
+
+            <aside class="scanner-command-card" aria-label="Scanner command panel">
+                <div class="command-kicker">
+                    <span>Pipeline state</span>
+                    <strong>Ready</strong>
+                </div>
+                <div class="command-lines" aria-hidden="true">
+                    <div>
+                        <span>Universe</span>
+                        <strong>Nifty symbols</strong>
+                    </div>
+                    <div>
+                        <span>Engine</span>
+                        <strong>RS + Z + RSI + EMA</strong>
+                    </div>
+                    <div>
+                        <span>Risk</span>
+                        <strong>ATR stop</strong>
+                    </div>
+                </div>
+                <div class="scanner-actions">
+                    <button id="refresh-btn" class="primary-btn" type="button">
+                        <span aria-hidden="true">Run</span>
+                        <span>Scan Live Market</span>
+                    </button>
+                    <button id="export-btn" class="secondary-btn" type="button" disabled>
+                        <span aria-hidden="true">CSV</span>
+                        <span>Export Results</span>
+                    </button>
+                    <a class="secondary-btn" href="index.html">Read Architecture</a>
+                </div>
+            </aside>
+        </section>
+
+        <section class="control-panel" aria-label="Scanner controls and status">
+            <div id="status-message" class="status-box loading">
+                <span class="spinner" aria-hidden="true"></span>
+                Waiting to run the quant pipeline...
+            </div>
+            <div class="scan-meta scan-meta-quad">
+                <div>
+                    <span>Endpoint</span>
+                    <strong>127.0.0.1:8000/api</strong>
+                </div>
+                <div>
+                    <span>Filters</span>
+                    <strong>RS, Z, RSI, EMA</strong>
+                </div>
+                <div>
+                    <span>Allocation</span>
+                    <strong>Alpha + Beta weighted</strong>
+                </div>
+                <div>
+                    <span>Last scan</span>
+                    <strong id="last-updated-time">Checking...</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-panel">
+            <div class="results-header">
+                <div>
+                    <p class="eyebrow">Screen results</p>
+                    <h2>Qualified candidates</h2>
+                </div>
+                <label class="table-search">
+                    <span>Search ticker</span>
+                    <input id="ticker-search" type="search" placeholder="RELIANCE.NS">
+                </label>
+            </div>
+
+            <div class="table-wrap">
+                <table id="screener-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="Ticker" scope="col">Ticker</th>
+                            <th data-sort="Close_Price" scope="col">Close</th>
+                            <th data-sort="Alpha" scope="col">Alpha</th>
+                            <th data-sort="Beta" scope="col">Beta</th>
+                            <th data-sort="Log_RS" scope="col">Log RS</th>
+                            <th data-sort="Alpha_Weight_%" scope="col">Alpha Wt.</th>
+                            <th data-sort="Beta_Weight_%" scope="col">Beta Wt.</th>
+                            <th data-sort="Stop_Loss" scope="col">ATR Stop</th>
+                        </tr>
+                    </thead>
+                    <tbody id="screener-body">
+                        <tr class="empty-row">
+                            <td colspan="8">Run the scan to populate live candidates.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
