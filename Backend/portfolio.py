@@ -38,9 +38,6 @@ def calculate_allocations(filtered_stocks_df):
 
 
 if __name__ == "__main__":
-    # Simulate the output from Phase 8 & Phase 9.
-    # In reality, this data would come from joining the outputs of indicators.py and filters.py
-    # where Z_Score > 1.5, RSI_Passed == True, EMA_Passed == True, and Volume_Passed == True.
 
     mock_filtered_data = {
         'Ticker': ['RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'ZOMATO.NS'],

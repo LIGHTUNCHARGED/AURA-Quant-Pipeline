@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-
-# 1. IMPORT YOUR FUNCTION
 from data_loader import fetch_and_preprocess
 
 
@@ -62,9 +60,7 @@ def calculate_weighted_rs(log_returns, target_ticker, benchmark='^NSEI', span=20
     daily_log_rs = log_returns[target_ticker] - log_returns[benchmark]
 
     # 2. Apply the Exponential Decay (lambda weighting)
-    # Using Pandas ewm().mean() applies the lambda weighting mathematically.
     # A 'span' of 20 roughly corresponds to a lambda of 0.904.
-    # Note: We use .mean() instead of .sum() to keep the WRS value normalized
     # and interpretable, representing the recency-weighted average daily outperformance.
     wrs = daily_log_rs.ewm(span=span, adjust=False).mean()
 
@@ -148,7 +144,7 @@ def calculate_volume_filter(volume_series, target_ticker, window=20):
 
     return volume_df.dropna()
 
-# 2. EXECUTE THE PIPELINE
+# 2. EXECUTE THE PIPELINE (For testing purposes only)
 if __name__ == "__main__":
     from data_loader import fetch_and_preprocess
 

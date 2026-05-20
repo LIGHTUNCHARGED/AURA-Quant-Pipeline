@@ -11,7 +11,6 @@ def fetch_tickers_from_txt(file_path: str = 'Symbols_NSE.txt') -> list:
     clean_tickers = []
 
     with open(file_path, 'r', encoding='utf-8') as file:
-        # Skip the first header line
         next(file, None)
 
         for line in file:
@@ -69,7 +68,7 @@ def fetch_and_preprocess(full_data, benchmark='^NSEI'):
     return prices, volumes, log_returns
 
 
-# Example execution using a sample of Nifty 50 heavyweights
+# Testing example stocks
 if __name__ == "__main__":
 
     sample_stocks = ['RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS']

@@ -2,7 +2,6 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime
 
-# Import your modular pipeline
 from data_loader import fetch_and_preprocess, fetch_tickers_from_txt
 from indicators import calculate_rs, calculate_rarsi, calculate_weighted_rs, calculate_beta, calculate_alpha
 from filters import calculate_z_score, calculate_rsi_filter, calculate_ema_filter, calculate_volume_filter
@@ -19,7 +18,7 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
     print(f"Universe Size: {len(tickers)} | Date Range: {start_date} to {end_date}")
 
     # ---------------------------------------------------------
-    # PHASE 1 & 2: DATA COLLECTION & PREPROCESSING
+    # DATA COLLECTION & PREPROCESSING
     # ---------------------------------------------------------
 
 
@@ -126,7 +125,7 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
         ].copy()
 
     # ---------------------------------------------------------
-    # PHASE 10: PORTFOLIO ALLOCATION
+    # PORTFOLIO ALLOCATION
     # ---------------------------------------------------------
     if not filtered_df.empty:
         print(f"\n{len(filtered_df)} stocks passed the filters. Constructing Portfolio...")
