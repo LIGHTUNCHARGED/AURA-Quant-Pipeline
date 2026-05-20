@@ -132,26 +132,31 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
         print(f"\n{len(filtered_df)} stocks passed the filters. Constructing Portfolio...")
 
         allocations = calculate_allocations(filtered_df)
-
         final_portfolio = pd.merge(
             allocations,
             filtered_df[['Ticker', 'Close_Price', 'Stop_Loss']],
             on='Ticker'
         )
 
-        print("\n=== FINAL ALLOCATION & EXECUTION PLAN ===")
-        print(final_portfolio.to_string(index=False))
+        # --- NEW STEP: SAVE THE OUTPUT ---
+        # Export the final portfolio to a local JSON file
+        final_portfolio.to_json("latest_scan.json", orient="records")
+        print("\n=== SUCCESS: Saved results to latest_scan.json ===")
+
+        return final_portfolio
 
     else:
         print("\n=== NO TRADE ZONE ===")
         print("Zero stocks passed the quantitative filters today.")
-
+        # Save an empty array so the API knows it ran but found nothing
+        pd.DataFrame().to_json("latest_scan.json", orient="records")
+        return pd.DataFrame()
 
 if __name__ == "__main__":
     # 1. TEST MODE
     # target_universe = [
     #     'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'ZOMATO.NS',
-    #     'TATAMOTORS.NS', 'INFY.NS', 'BHARTIARTL.NS', 'ITC.NS'
+    #     'TATAMOTORS.NS', 'INFY.NS', 'BHARTIARTL.NS', 'ITC.NS', 'HALEOSLABS.NS'
     # ]
 
     # 2. PRODUCTION MODE (Active - Runs full market)
