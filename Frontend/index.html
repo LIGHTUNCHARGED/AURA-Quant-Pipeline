@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manit Arora | RS-Beta-Alpha Strategy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,500;0,700;0,800;1,500&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="theory">
+    <header class="site-header">
+        <a class="brand" href="index.html" aria-label="Strategy home">
+            <span class="brand-mark">MA</span>
+            <span>
+                <strong>Manit Arora</strong>
+                <small>Quant Finance Pipeline</small>
+            </span>
+        </a>
+        <nav class="nav-actions" aria-label="Primary navigation">
+            <a class="nav-link active" href="index.html">Architecture</a>
+            <a class="nav-link" href="scanner.html">Live Scanner</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-grid">
+            <div class="hero-copy">
+                <p class="eyebrow">Algorithmic Momentum & Risk Allocation</p>
+                <h1>
+                    <span>Isolate genuine</span>
+                    <span>market edge with</span>
+                    <span>statistical rigor.</span>
+                </h1>
+                <p class="hero-text">
+                    An automated quantitative pipeline designed to screen the Nifty universe. It verifies relative outperformance using Z-scores, confirms technical alignment, and dynamically sizes capital allocation using Alpha and Beta profiles.
+                </p>
+                <div class="hero-actions">
+                    <a class="primary-btn" href="scanner.html?scan=live">
+                        <span aria-hidden="true">Deploy</span>
+                        <span>Live Scanner</span>
+                    </a>
+                    <a class="secondary-btn" href="#framework">View Architecture</a>
+                </div>
+            </div>
+
+            <div class="signal-board" aria-label="Strategy flow visual">
+                <div class="market-card mini-card">
+                    <span>Benchmark Index</span>
+                    <strong>NSE</strong>
+                </div>
+                <svg class="signal-chart" viewBox="0 0 520 300" role="img" aria-label="Relative strength chart">
+                    <defs>
+                        <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#35c6a5" stop-opacity="0.38"/>
+                            <stop offset="100%" stop-color="#35c6a5" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path class="grid-line" d="M30 64H490M30 128H490M30 192H490M30 256H490"/>
+                    <path class="area" d="M34 238 C90 226 102 186 148 192 C202 200 214 138 270 144 C324 150 348 84 402 90 C444 94 458 58 488 48 L488 270 L34 270 Z"/>
+                    <path class="nifty-line" d="M34 220 C100 210 150 215 210 190 C260 170 310 178 360 150 C410 125 448 130 488 118"/>
+                    <path class="rs-line" d="M34 238 C90 226 102 186 148 192 C202 200 214 138 270 144 C324 150 348 84 402 90 C444 94 458 58 488 48"/>
+                    <g class="chart-labels">
+                        <text x="34" y="34">Log RS Variance</text>
+                        <text x="398" y="136">Nifty 50</text>
+                    </g>
+                </svg>
+                <div class="metric-strip">
+                    <div>
+                        <span>Statistical Gate</span>
+                        <strong><i>Z</i> &gt; 1.5</strong>
+                    </div>
+                    <div>
+                        <span>Momentum Zone</span>
+                        <strong>45 &lt; RSI &lt; 70</strong>
+                    </div>
+                    <div>
+                        <span>Trend Stack</span>
+                        <strong>EMA Alignment</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="framework" class="section-block">
+            <div class="section-heading">
+                <p class="eyebrow">System Architecture</p>
+                <h2>The 5-Phase Execution Pipeline</h2>
+                <p>
+                    Built for modular efficiency. The engine ingests unstructured market data and passes it through five rigorous mathematical layers to filter out market noise and return high-probability trade candidates.
+                </p>
+            </div>
+
+            <div class="framework-grid">
+                <article class="info-card">
+                    <span class="card-index">01</span>
+                    <h3>Data Ingestion</h3>
+                    <p>Fetches daily OHLCV datasets. Raw prices are instantly transformed into log returns, providing a mathematically stable and additive foundation for the entire model.</p>
+                    <span class="formula-pill" aria-label="r sub t equals natural log of P sub t divided by P sub t minus 1">
+                        <svg class="formula-svg compact" viewBox="0 0 190 58" role="img" aria-hidden="true">
+                            <text x="10" y="34" class="math-main">r</text>
+                            <text x="23" y="43" class="math-sub">t</text>
+                            <text x="42" y="34" class="math-main">= ln</text>
+                            <text x="94" y="34" class="math-main">(</text>
+                            <text x="124" y="22" class="math-main">P</text>
+                            <text x="138" y="29" class="math-sub">t</text>
+                            <line x1="116" y1="33" x2="166" y2="33" class="math-rule"/>
+                            <text x="120" y="50" class="math-main">P</text>
+                            <text x="134" y="55" class="math-sub">t-1</text>
+                            <text x="174" y="34" class="math-main">)</text>
+                        </svg>
+                    </span>
+                </article>
+                <article class="info-card">
+                    <span class="card-index">02</span>
+                    <h3>Relative Strength</h3>
+                    <p>Measures structural dominance. We subtract the benchmark's cumulative returns from the asset's returns to isolate true market outperformance.</p>
+                    <span class="formula-pill" aria-label="Log relative strength equals cumulative stock log return minus cumulative market log return">
+                        <svg class="formula-svg" viewBox="0 0 238 48" role="img" aria-hidden="true">
+                            <text x="10" y="30" class="math-label">Log_RS</text>
+                            <text x="82" y="30" class="math-main">=</text>
+                            <text x="103" y="30" class="math-sigma">&Sigma;</text>
+                            <text x="126" y="30" class="math-main">r</text>
+                            <text x="139" y="38" class="math-sub">s</text>
+                            <text x="158" y="30" class="math-main">-</text>
+                            <text x="179" y="30" class="math-sigma">&Sigma;</text>
+                            <text x="202" y="30" class="math-main">r</text>
+                            <text x="215" y="38" class="math-sub">m</text>
+                        </svg>
+                    </span>
+                </article>
+                <article class="info-card">
+                    <span class="card-index">03</span>
+                    <h3>Boolean Gates</h3>
+                    <p>Strict conditional logic. The outperformance must clear a Z-score standard deviation threshold, backed by volume breakouts and an aligned moving average stack.</p>
+                    <span class="formula-pill">
+                        <svg class="formula-svg wide" viewBox="0 0 270 46" role="img" aria-label="Z greater than 1.5 and RSI between 45 and 70">
+                            <text x="10" y="29" class="math-main">Z &gt; 1.5</text>
+                            <line x1="90" y1="10" x2="90" y2="36" class="math-divider"/>
+                            <text x="110" y="29" class="math-main">RSI &isin; (45, 70)</text>
+                        </svg>
+                    </span>
+                </article>
+                <article class="info-card">
+                    <span class="card-index">04</span>
+                    <h3>Risk-Adjusted Sizing</h3>
+                    <p>Capital is not distributed equally. The engine calculates portfolio weights that heavily reward stock-specific Alpha while actively penalizing high-Beta variance.</p>
+                    <span class="formula-pill">
+                        <svg class="formula-svg compact" viewBox="0 0 176 44" role="img" aria-label="w sub i equals alpha sub i divided by sum alpha">
+                            <text x="10" y="28" class="math-main">w</text>
+                            <text x="25" y="36" class="math-sub">i</text>
+                            <text x="47" y="28" class="math-main">=</text>
+                            <text x="70" y="28" class="math-main">&alpha;</text>
+                            <text x="85" y="36" class="math-sub">i</text>
+                            <text x="103" y="28" class="math-main">/</text>
+                            <text x="124" y="28" class="math-sigma">&Sigma;&alpha;</text>
+                        </svg>
+                    </span>
+                </article>
+                <article class="info-card">
+                    <span class="card-index">05</span>
+                    <h3>Drawdown Control</h3>
+                    <p>Every surviving candidate is assigned a dynamic trailing stop based on Average True Range (ATR), mathematically adapting the risk threshold to the stock's natural volatility.</p>
+                    <span class="formula-pill">
+                        <svg class="formula-svg wide" viewBox="0 0 270 44" role="img" aria-label="Stop equals close minus two times ATR">
+                            <text x="10" y="28" class="math-label">Stop</text>
+                            <text x="62" y="28" class="math-main">=</text>
+                            <text x="84" y="28" class="math-label">Close</text>
+                            <text x="142" y="28" class="math-main">-</text>
+                            <text x="162" y="28" class="math-main">2 x ATR</text>
+                        </svg>
+                    </span>
+                </article>
+            </div>
+        </section>
+
+        <section class="theory-article" aria-labelledby="theory-title">
+            <div class="article-heading">
+                <p class="eyebrow">Mathematical Foundation</p>
+                <h2 id="theory-title">Decoding the Quant Logic</h2>
+                <p>
+                    To generate a consistent edge, we must separate genuine momentum from random market variance. Here is the mathematical framework powering the core calculations of the screener.
+                </p>
+            </div>
+
+            <article class="article-body">
+                <section class="theory-topic">
+                    <span class="topic-number">01</span>
+                    <div>
+                        <h3>Logarithmic vs. Arithmetic Returns</h3>
+                        <p>While standard arithmetic returns are intuitive, they break down over time due to compounding asymmetry (a 50% loss requires a 100% gain to recover). Log returns solve this. They are perfectly additive, symmetric, and statistically robust, making them the superior choice for predictive modeling.</p>
+                        <div class="formula-row">
+                            <span class="code-badge">Arithmetic: <i>R<sub>t</sub></i> = (<i>P<sub>t</sub></i> &minus; <i>P<sub>t-1</sub></i>) / <i>P<sub>t-1</sub></i></span>
+                            <span class="code-badge">Logarithmic: <i>r<sub>t</sub></i> = ln(<i>P<sub>t</sub></i> / <i>P<sub>t-1</sub></i>)</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="theory-topic">
+                    <span class="topic-number">02</span>
+                    <div>
+                        <h3>Isolating Relative Strength (RS)</h3>
+                        <p>In quantitative finance, absolute returns are often a byproduct of a rising market. Relative Strength isolates the underlying asset's independent trajectory. By converting this into Log RS, we transform multiplicative compounding into a clean, linear series of daily outperformance.</p>
+                        <div class="formula-row">
+                            <span class="code-badge">Log_RS = &Sigma;(<i>r<sub>stock</sub></i>) &minus; &Sigma;(<i>r<sub>Nifty</sub></i>)</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="theory-topic">
+                    <span class="topic-number">03</span>
+                    <div>
+                        <h3>Alpha (Skill) & Beta (Risk)</h3>
+                        <p>By running a rolling linear regression of the stock against the Nifty, we split its performance into two variables. <b>Beta</b> (<i>&beta;</i>) is the slope: the stock's sensitivity to the index. <b>Alpha</b> (<i>&alpha;</i>) is the intercept: the mathematical proof of a stock generating value independent of market tailwinds.</p>
+                        <div class="formula-row">
+                            <span class="code-badge"><i>&beta;</i> = Cov(<i>R<sub>s</sub></i>, <i>R<sub>m</sub></i>) / Var(<i>R<sub>m</sub></i>)</span>
+                            <span class="code-badge"><i>R<sub>s</sub></i> = <i>&alpha;</i> + <i>&beta;R<sub>m</sub></i> + <i>&epsilon;</i></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="theory-topic">
+                    <span class="topic-number">04</span>
+                    <div>
+                        <h3>The Z-Score Significance Filter</h3>
+                        <p>Just because a stock beats the market today doesn't mean the trend is real. The Z-Score calculates exactly how many standard deviations the current outperformance is from its historical mean (<i>&mu;</i>). If <i>Z</i> &lt; 1.5, the move is treated as statistical noise and discarded.</p>
+                        <div class="formula-row">
+                            <span class="code-badge"><i>Z</i> = (RS &minus; <i>&mu;<sub>RS</sub></i>) / <i>&sigma;<sub>RS</sub></i></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="theory-topic">
+                    <span class="topic-number">05</span>
+                    <div>
+                        <h3>Volatility & Drawdown Mechanics</h3>
+                        <p>Risk management is programmatic. Instead of rigid percentage stops, the engine calculates the Average True Range (ATR): a rolling metric of intraday volatility. The stop loss automatically widens for erratic assets and tightens for stable ones, optimizing the survival rate of the trade.</p>
+                        <div class="formula-row">
+                            <span class="code-badge">TR = max[(<i>H</i> &minus; <i>L</i>), |<i>H</i> &minus; <i>C<sub>prev</sub></i>|, |<i>L</i> &minus; <i>C<sub>prev</sub></i>|]</span>
+                            <span class="code-badge">Stop Level = Close &minus; (2 &times; ATR<sub>14</sub>)</span>
+                        </div>
+                    </div>
+                </section>
+            </article>
+        </section>
+
+        <section class="cta-band">
+            <div>
+                <p class="eyebrow">Execute the Model</p>
+                <h2>Initialize the FastAPI backend and scan the live market.</h2>
+            </div>
+            <a class="primary-btn" href="scanner.html?scan=live">
+                <span aria-hidden="true">Launch</span>
+                <span>Scanner</span>
+            </a>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
