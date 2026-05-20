@@ -30,28 +30,5 @@ The pipeline decouples resource-heavy mathematical computations from the client 
                │ (Non-blocking Async Polling)
                ▼
 [ Vanilla CSS/JS Dashboard (UI) ] ──► [ Client CSV Export Engine ]
-🧪 Core Quantitative Methodology1. Data Ingestion & Additive ContinuityRaw Open-High-Low-Close-Volume (OHLCV) datasets are ingested sequentially. To eliminate compounding scale asymmetry inherent in standard arithmetic percentage changes, returns are transformed into logarithmic time-series:$$r_t = \ln\left(\frac{P_t}{P_{t-1}}\right)$$2. Idiosyncratic Alpha vs. Beta Systematic SeparationTo ensure the model captures genuine momentum rather than broader market buoyancy, the script evaluates a rolling linear regression model of the asset against the benchmark index ($^NSEI$):$$R_{\text{stock}} = \alpha + \beta R_{\text{Nifty}} + \epsilon$$Beta ($\beta$): Represents systematic risk sensitivity (covariance of asset and market divided by market variance).Alpha ($\alpha$): Represents true, isolated manager/asset outperformance independent of index behavior.3. Statistical Significance GatingRelative Strength (Log RS) is tracked as a linear difference of cumulative logarithmic distributions. To pass the core filter, an asset's Log RS must deviate from its historical rolling mean ($\mu$) by a minimum standard deviation threshold ($\sigma$), eliminating short-term noise:$$Z = \frac{\text{RS} - \mu_{\text{RS}}}{\sigma_{\text{RS}}} > 1.5\sigma$$4. Risk-Adjusted Allocation SizingSurviving candidates are passed to a portfolio optimization engine. Capital allocation is scaled proportionally to its generated Alpha density, while being heavily penalized by systematic market risk exposure (Beta variance profile).5. Dynamic Trailing Drawdown ControlsRisk management is asset-agnostic and volatility-adaptive. Instead of static percentage stops, a multi-period Average True Range (ATR) algorithm estimates active intraday expansion boundaries, mapping trailing stop losses to the equity's natural noise floor:$$\text{True Range (TR)} = \max\left[(H - L), |H - C_{\text{prev}}|, |L - C_{\text{prev}}|\right]$$$$\text{Stop Level} = \text{Close} - (2 \times \text{ATR}_{14})$$🛠️ Tech Stack & Optimization EngineeringBackend Mathematical Engine: Python 3.13, Pandas, NumPy, yfinance.Server Architecture: FastAPI running asynchronous background workers (BackgroundTasks) via Uvicorn.Web Caching: High-speed Time-to-Live (TTL) server-side cache window set to 30 minutes ($1800$ seconds) via dynamic file descriptor modification detection (os.path.getmtime).Frontend Dashboard: Vanilla HTML5, Vanilla JavaScript, CSS custom variables (Dark Slate Fintech Theme).Data Serialization & Portability: Native Client-side CSV parser processing data chunks straight into dynamic system Blob structures for direct download.🚀 Installation & Local Deployment1. Backend InitializationEnsure your directory contains a verified list of active exchange assets inside Symbols_NSE.txt.Bash# Clone the repository
-git clone [https://github.com/your-username/AURA-Quant-Pipeline.git](https://github.com/your-username/AURA-Quant-Pipeline.git)
-cd AURA-Quant-Pipeline/Backend
+'''
 
-# Install required dependencies
-pip install -r requirements.txt
-
-# Launch the FastAPI production server
-uvicorn api:app --reload
-2. Frontend Interface MountSince the UI is built utilizing native, optimized browser APIs, you don't need any complex compilation scripts or heavy Node module overhead:Open the Frontend/ folder.Launch index.html via VS Code's Live Server plugin or click directly on the layout file.Click Deploy Live Scanner to kick off background market calculations.💾 System Snapshot Sample OutputJSON{
-  "status": "success",
-  "data": [
-    {
-      "Ticker": "HALEOSLABS.NS",
-      "Close_Price": 1556.50,
-      "Alpha": 0.00457,
-      "Beta": 0.29,
-      "Log_RS": 0.0804,
-      "Alpha_Weight_%": 100.00,
-      "Beta_Weight_%": 100.00,
-      "Stop_Loss": 1383.62
-    }
-  ]
-}
-Developed by Manit Arora – Focused on Algorithmic Execution, Portfolio Sizing Strategy, and Quantitative Systems Architecture.
