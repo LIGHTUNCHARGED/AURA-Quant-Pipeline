@@ -7,6 +7,7 @@ from indicators import calculate_rs, calculate_rarsi, calculate_weighted_rs, cal
 from filters import calculate_z_score, calculate_rsi_filter, calculate_ema_filter, calculate_volume_filter
 from portfolio import calculate_allocations
 from risk_management import calculate_atr_stop
+from ml_engine import predict_probabilities
 
 
 def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_date=None):
@@ -128,21 +129,37 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
     # PORTFOLIO ALLOCATION
     # ---------------------------------------------------------
     if not filtered_df.empty:
-        print(f"\n{len(filtered_df)} stocks passed the filters. Constructing Portfolio...")
-
+        # Calculate your existing risk-weighted allocations
         allocations = calculate_allocations(filtered_df)
-        final_portfolio = pd.merge(
-            allocations,
-            filtered_df[['Ticker', 'Close_Price', 'Stop_Loss']],
-            on='Ticker'
-        )
+        final_portfolio = pd.merge(allocations, filtered_df[
+            ['Ticker', 'Close_Price', 'Stop_Loss', 'Alpha', 'Beta', 'Log_RS', 'RSI', 'ATR']], on='Ticker')
 
-        # --- NEW STEP: SAVE THE OUTPUT ---
-        # Export the final portfolio to a local JSON file
-        final_portfolio.to_json("latest_scan.json", orient="records")
+        # Calculate the Vol_Ratio for the live data
+        final_portfolio['Vol_Ratio'] = final_portfolio['ATR'] / final_portfolio['Close_Price']
+
+        # --- ML PREDICTION LAYER ---
+        try:
+            # Generate the probability of a positive 5-day return
+            final_portfolio['Win_Probability'] = predict_probabilities(final_portfolio)
+
+            # Format as a percentage string for the UI
+            final_portfolio['Win_Probability'] = (final_portfolio['Win_Probability'] * 100).round(1).astype(str) + '%'
+
+            # Sort by highest probability first
+            final_portfolio = final_portfolio.sort_values(by='Win_Probability', ascending=False)
+        except Exception as e:
+            print(f"ML Prediction failed (Model might not be trained yet): {e}")
+            final_portfolio['Win_Probability'] = "N/A"
+
+        # Clean up columns before sending to the frontend
+        export_df = final_portfolio[
+            ['Ticker', 'Close_Price', 'Win_Probability', 'Alpha', 'Beta', 'Log_RS', 'Alpha_Weight_%', 'Beta_Weight_%',
+             'Stop_Loss']]
+
+        # Save the final output
+        export_df.to_json("latest_scan.json", orient="records")
         print("\n=== SUCCESS: Saved results to latest_scan.json ===")
-
-        return final_portfolio
+        return export_df
 
     else:
         print("\n=== NO TRADE ZONE ===")
