@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = "https://aura-quant-pipeline.onrender.com/api";
 let pollInterval = null; // Holds the timer for background polling
 
 const state = {

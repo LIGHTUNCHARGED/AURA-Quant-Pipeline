@@ -76,7 +76,7 @@ $$
 ## 🛠️ Tech Stack & Optimization Engineering
 * **Backend Mathematical Engine:** Python 3.13, Pandas, NumPy, yfinance.
 * **Server Architecture:** FastAPI running asynchronous background workers (`BackgroundTasks`) via Uvicorn.
-* **Web Caching:** High-speed Time-to-Live (TTL) server-side cache window set to 30 minutes ($1800$ seconds) via dynamic file descriptor modification detection (`os.path.getmtime`).
+* **Web Caching:** High-speed Time-to-Live (TTL) server-side cache window set to 60 minutes ($3600$ seconds) via dynamic file descriptor modification detection (`os.path.getmtime`).
 * **Frontend Dashboard:** Vanilla HTML5, Vanilla JavaScript, CSS custom variables (Dark Slate Fintech Theme).
 * **Data Serialization & Portability:** Native Client-side CSV parser processing data chunks straight into dynamic system Blob structures for direct download.
 
