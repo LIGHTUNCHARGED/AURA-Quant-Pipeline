@@ -15,9 +15,13 @@ def calculate_allocations(filtered_stocks_df):
     # 1. ALPHA-WEIGHTED PORTFOLIO
     # We clip Alpha at 0 because we only want to allocate long capital to positive Alpha.
     positive_alpha = df['Alpha'].clip(lower=0)
+    alpha_sum = positive_alpha.sum()
 
     # Formula: w_i = alpha_i / sum(alpha)
-    df['Alpha_Weight'] = positive_alpha / positive_alpha.sum()
+    if alpha_sum > 0:
+        df['Alpha_Weight'] = positive_alpha / alpha_sum
+    else:
+        df['Alpha_Weight'] = 1 / len(df)
 
     # 2. BETA-ADJUSTED WEIGHTING
     # Formula: W_i = RS_i / Beta_i
@@ -28,7 +32,11 @@ def calculate_allocations(filtered_stocks_df):
     # Normalize the beta-adjusted scores so they sum up to 1 (100% of the portfolio)
     # We only allocate to positive RS scores
     positive_beta_score = beta_adjusted_score.clip(lower=0)
-    df['Beta_Weight'] = positive_beta_score / positive_beta_score.sum()
+    beta_score_sum = positive_beta_score.sum()
+    if beta_score_sum > 0:
+        df['Beta_Weight'] = positive_beta_score / beta_score_sum
+    else:
+        df['Beta_Weight'] = 1 / len(df)
 
     # Clean up formatting for readability (convert to percentages)
     df['Alpha_Weight_%'] = (df['Alpha_Weight'] * 100).round(2)

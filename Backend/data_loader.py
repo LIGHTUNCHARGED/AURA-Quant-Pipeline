@@ -1,6 +1,25 @@
+from pathlib import Path
+
 import yfinance as yf
 import pandas as pd
 import numpy as np
+
+BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_SYMBOLS_PATH = BASE_DIR / 'Symbols_NSE.txt'
+YF_CACHE_DIR = BASE_DIR / '.yf_cache'
+
+
+def configure_yfinance_cache():
+    """
+    Keep yfinance's sqlite cache in the project so API scans do not fail
+    when the process home/cache directory is missing or read-only.
+    """
+    YF_CACHE_DIR.mkdir(exist_ok=True)
+    if hasattr(yf, "set_tz_cache_location"):
+        yf.set_tz_cache_location(str(YF_CACHE_DIR))
+
+
+configure_yfinance_cache()
 
 
 def fetch_tickers_from_txt(file_path: str = 'Symbols_NSE.txt') -> list:
@@ -9,8 +28,11 @@ def fetch_tickers_from_txt(file_path: str = 'Symbols_NSE.txt') -> list:
     (like block deals and mutual funds), and formats them for Yahoo Finance.
     """
     clean_tickers = []
+    symbols_path = Path(file_path)
+    if not symbols_path.is_absolute() and not symbols_path.exists():
+        symbols_path = DEFAULT_SYMBOLS_PATH
 
-    with open(file_path, 'r', encoding='utf-8') as file:
+    with open(symbols_path, 'r', encoding='utf-8') as file:
         next(file, None)
 
         for line in file:

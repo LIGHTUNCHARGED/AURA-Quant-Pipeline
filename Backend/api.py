@@ -1,9 +1,14 @@
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 import json
-import os
+import sys
 import time
 from datetime import datetime
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 from main import run_quant_pipeline
 from data_loader import fetch_tickers_from_txt
@@ -12,22 +17,48 @@ app = FastAPI(title="Quant Strategy API")
 
 # 1Hr waiting time before next scan
 CACHE_TTL_SECONDS = 3600
+LATEST_SCAN_PATH = BASE_DIR / "latest_scan.json"
+SYMBOLS_PATH = BASE_DIR / "Symbols_NSE.txt"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://aura-quant-pipeline-1.onrender.com"],
-    allow_credentials=True,
+    allow_origins=[
+        "https://aura-quant-pipeline-1.onrender.com",
+        "https://aura-quant-pipeline.onrender.com",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "null",
+    ],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Helper function to check the file's timestamp
 def get_cache_timestamp():
-    file_path = "latest_scan.json"
-    if os.path.exists(file_path):
-        mtime = os.path.getmtime(file_path)
+    if LATEST_SCAN_PATH.exists():
+        mtime = LATEST_SCAN_PATH.stat().st_mtime
         return datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %I:%M:%S %p')
     return "No previous scan found"
+
+
+def cache_has_current_schema():
+    if not LATEST_SCAN_PATH.exists():
+        return False
+
+    try:
+        with open(LATEST_SCAN_PATH, "r", encoding="utf-8") as file:
+            cached_rows = json.load(file)
+    except (json.JSONDecodeError, OSError):
+        return False
+
+    if not cached_rows:
+        return True
+
+    return all("Win_Probability" in row for row in cached_rows)
 
 SCAN_STATUS = {
     "is_scanning": False,
@@ -36,8 +67,18 @@ SCAN_STATUS = {
 }
 
 print("Loading NSE universe from text file...")
-TARGET_UNIVERSE = fetch_tickers_from_txt('Symbols_NSE.txt')
+TARGET_UNIVERSE = fetch_tickers_from_txt(SYMBOLS_PATH)
 print(f"Loaded {len(TARGET_UNIVERSE)} stocks.")
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Quant API is running", "docs": "/docs"}
+
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok", "universe_size": len(TARGET_UNIVERSE)}
 
 
 def background_scan_task():
@@ -46,7 +87,7 @@ def background_scan_task():
     SCAN_STATUS["message"] = f"Crunching {len(TARGET_UNIVERSE)} stocks. This takes time..."
 
     try:
-        run_quant_pipeline(TARGET_UNIVERSE)
+        run_quant_pipeline(TARGET_UNIVERSE, output_path=LATEST_SCAN_PATH)
         SCAN_STATUS["message"] = "Scan complete!"
     except Exception as e:
         print(f"Error during scan: {e}")
@@ -63,11 +104,10 @@ def trigger_scan(background_tasks: BackgroundTasks):
     if SCAN_STATUS["is_scanning"]:
         return {"status": "ignored", "message": "A scan is already running."}
 
-    file_path = "latest_scan.json"
-    if os.path.exists(file_path):
-        file_age = time.time() - os.path.getmtime(file_path)
+    if LATEST_SCAN_PATH.exists():
+        file_age = time.time() - LATEST_SCAN_PATH.stat().st_mtime
 
-        if file_age < CACHE_TTL_SECONDS:
+        if file_age < CACHE_TTL_SECONDS and cache_has_current_schema():
             minutes_old = int(file_age / 60)
             timestamp = get_cache_timestamp()
             SCAN_STATUS["last_updated"] = timestamp
@@ -90,10 +130,10 @@ def get_status():
 
 @app.get("/api/screener")
 def get_daily_allocations():
-    if not os.path.exists("latest_scan.json"):
+    if not LATEST_SCAN_PATH.exists():
         return {"status": "error", "message": "No scan data found."}
 
-    with open("latest_scan.json", "r") as file:
+    with open(LATEST_SCAN_PATH, "r", encoding="utf-8") as file:
         json_data = json.load(file)
 
     if len(json_data) == 0:

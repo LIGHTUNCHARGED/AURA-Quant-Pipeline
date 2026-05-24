@@ -1134,3 +1134,24 @@ tbody tr:not(.empty-row) {
     opacity: 0;
     animation: rowEnter 0.4s ease-out forwards;
 }
+/* =========================================
+   ML PROBABILITY HIGHLIGHTS
+   ========================================= */
+.prob-score {
+    font-weight: 900;
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.prob-high {
+    color: #35c6a5;
+    text-shadow: 0 0 12px rgba(53, 198, 165, 0.4); /* Glow effect for high conviction */
+}
+
+.prob-mid {
+    color: #f6b95b;
+}
+
+.prob-low {
+    color: #ff6b7a;
+    opacity: 0.8;
+}

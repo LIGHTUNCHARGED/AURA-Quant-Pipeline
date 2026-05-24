@@ -1,6 +1,7 @@
 import pandas as pd
 import yfinance as yf
 from datetime import datetime
+from pathlib import Path
 
 from data_loader import fetch_and_preprocess, fetch_tickers_from_txt
 from indicators import calculate_rs, calculate_rarsi, calculate_weighted_rs, calculate_beta, calculate_alpha
@@ -9,8 +10,12 @@ from portfolio import calculate_allocations
 from risk_management import calculate_atr_stop
 from ml_engine import predict_probabilities
 
+BASE_DIR = Path(__file__).resolve().parent
+LATEST_SCAN_PATH = BASE_DIR / "latest_scan.json"
+SYMBOLS_PATH = BASE_DIR / "Symbols_NSE.txt"
 
-def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_date=None):
+
+def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_date=None, output_path=LATEST_SCAN_PATH):
 
     if end_date is None:
         end_date = datetime.today().strftime('%Y-%m-%d')
@@ -94,9 +99,11 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
                 'Beta': beta_series.dropna().iloc[-1],
                 'Alpha': alpha_df[f'{stock}_Alpha'].dropna().iloc[-1],
                 'Z_Score': z_score_df[f'{stock}_Z_Score'].dropna().iloc[-1],
+                'RSI': rsi_df[f'{stock}_RSI'].dropna().iloc[-1],
                 'RSI_Passed': rsi_df[f'{stock}_RSI_Passed'].dropna().iloc[-1],
                 'EMA_Passed': ema_df[f'{stock}_EMA_Passed'].dropna().iloc[-1],
                 'Volume_Passed': vol_df[f'{stock}_Volume_Passed'].dropna().iloc[-1],
+                'ATR': atr_df[f'{stock}_ATR'].dropna().iloc[-1],
                 'Stop_Loss': atr_df[f'{stock}_Stop_Level'].dropna().iloc[-1]
             }
 
@@ -110,7 +117,8 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
     if screener_df.empty:
         print("\n=== PIPELINE ABORTED ===")
         print("Zero stocks were successfully processed. Check your data connection.")
-        return
+        pd.DataFrame().to_json(output_path, orient="records")
+        return pd.DataFrame()
 
     # ---------------------------------------------------------
     # EXECUTE STRATEGY FILTERS
@@ -130,9 +138,12 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
     # ---------------------------------------------------------
     if not filtered_df.empty:
         # Calculate your existing risk-weighted allocations
-        allocations = calculate_allocations(filtered_df)
-        final_portfolio = pd.merge(allocations, filtered_df[
-            ['Ticker', 'Close_Price', 'Stop_Loss', 'Alpha', 'Beta', 'Log_RS', 'RSI', 'ATR']], on='Ticker')
+        allocations = calculate_allocations(filtered_df)[['Ticker', 'Alpha_Weight_%', 'Beta_Weight_%']]
+        final_portfolio = pd.merge(
+            filtered_df[['Ticker', 'Close_Price', 'Stop_Loss', 'Alpha', 'Beta', 'Log_RS', 'RSI', 'ATR']],
+            allocations,
+            on='Ticker'
+        )
 
         # Calculate the Vol_Ratio for the live data
         final_portfolio['Vol_Ratio'] = final_portfolio['ATR'] / final_portfolio['Close_Price']
@@ -142,8 +153,8 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
             # Generate the probability of a positive 5-day return
             final_portfolio['Win_Probability'] = predict_probabilities(final_portfolio)
 
-            # Format as a percentage string for the UI
-            final_portfolio['Win_Probability'] = (final_portfolio['Win_Probability'] * 100).round(1).astype(str) + '%'
+            # Keep a numeric percentage so the API/UI can sort it correctly.
+            final_portfolio['Win_Probability'] = (final_portfolio['Win_Probability'] * 100).round(1)
 
             # Sort by highest probability first
             final_portfolio = final_portfolio.sort_values(by='Win_Probability', ascending=False)
@@ -157,15 +168,15 @@ def run_quant_pipeline(tickers, benchmark='^NSEI', start_date='2024-01-01', end_
              'Stop_Loss']]
 
         # Save the final output
-        export_df.to_json("latest_scan.json", orient="records")
-        print("\n=== SUCCESS: Saved results to latest_scan.json ===")
+        export_df.to_json(output_path, orient="records")
+        print(f"\n=== SUCCESS: Saved results to {output_path} ===")
         return export_df
 
     else:
         print("\n=== NO TRADE ZONE ===")
         print("Zero stocks passed the quantitative filters today.")
         # Save an empty array so the API knows it ran but found nothing
-        pd.DataFrame().to_json("latest_scan.json", orient="records")
+        pd.DataFrame().to_json(output_path, orient="records")
         return pd.DataFrame()
 
 if __name__ == "__main__":
@@ -176,6 +187,6 @@ if __name__ == "__main__":
     # ]
 
     # 2. PRODUCTION MODE (Active - Runs full market)
-    target_universe = fetch_tickers_from_txt('Symbols_NSE.txt')
+    target_universe = fetch_tickers_from_txt(SYMBOLS_PATH)
 
     run_quant_pipeline(target_universe)

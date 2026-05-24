@@ -1,9 +1,25 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 import joblib
+
+BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_MODEL_PATH = BASE_DIR / "logistic_model.pkl"
+FEATURES = ['Alpha', 'Beta', 'Log_RS', 'RSI', 'Vol_Ratio']
+
+
+def _resolve_model_path(filename=None):
+    if filename is None:
+        return DEFAULT_MODEL_PATH
+
+    model_path = Path(filename)
+    if model_path.is_absolute():
+        return model_path
+    if model_path.exists():
+        return model_path
+    return BASE_DIR / model_path
 
 
 def prepare_ml_data(historical_df):
@@ -24,15 +40,13 @@ def prepare_ml_data(historical_df):
     # Adding a normalized volatility feature (ATR / Close Price)
     df['Vol_Ratio'] = df['ATR'] / df['Close']
 
-    features = ['Alpha', 'Beta', 'Log_RS', 'RSI', 'Vol_Ratio']
-
     # Drop rows with NaN values (due to rolling windows and future shifting)
-    ml_df = df.dropna(subset=features + ['Target'])
+    ml_df = df.dropna(subset=FEATURES + ['Target'])
 
-    return ml_df[features], ml_df['Target']
+    return ml_df[FEATURES], ml_df['Target']
 
 
-def train_and_save_model(X, y, filename="logistic_model.pkl"):
+def train_and_save_model(X, y, filename=None):
     """
     Trains the Logistic Regression model and saves the scaler and model weights.
     """
@@ -57,21 +71,34 @@ def train_and_save_model(X, y, filename="logistic_model.pkl"):
     print(f"Model Training Complete. Test Accuracy: {accuracy:.2f}")
 
     # Save the model and the scaler together
-    pipeline = {'model': model, 'scaler': scaler}
-    joblib.dump(pipeline, filename)
-    print(f"Saved model pipeline to {filename}")
+    model_path = _resolve_model_path(filename)
+    pipeline = {'model': model, 'scaler': scaler, 'features': list(X.columns)}
+    joblib.dump(pipeline, model_path)
+    print(f"Saved model pipeline to {model_path}")
 
 
-def predict_probabilities(current_data, filename="logistic_model.pkl"):
+def predict_probabilities(current_data, filename=None):
     """
     Loads the trained model to predict the win probability of live candidates.
     """
-    pipeline = joblib.load(filename)
+    model_path = _resolve_model_path(filename)
+    if not model_path.exists():
+        raise FileNotFoundError(f"Trained model not found at {model_path}")
+
+    pipeline = joblib.load(model_path)
     model = pipeline['model']
     scaler = pipeline['scaler']
 
-    features = ['Alpha', 'Beta', 'Log_RS', 'RSI', 'Vol_Ratio']
-    X_live = current_data[features]
+    features = pipeline.get('features', FEATURES)
+    missing_features = [feature for feature in features if feature not in current_data.columns]
+    if missing_features:
+        raise ValueError(f"Missing ML feature columns: {', '.join(missing_features)}")
+
+    X_live = current_data[features].apply(pd.to_numeric, errors='coerce')
+    X_live = X_live.replace([np.inf, -np.inf], np.nan)
+    if X_live.isna().any().any():
+        bad_columns = X_live.columns[X_live.isna().any()].tolist()
+        raise ValueError(f"ML feature data contains non-numeric or missing values: {', '.join(bad_columns)}")
 
     X_live_scaled = scaler.transform(X_live)
 

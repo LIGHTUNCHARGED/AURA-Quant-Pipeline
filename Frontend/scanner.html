@@ -50,7 +50,7 @@
                     </div>
                     <div>
                         <span>Engine</span>
-                        <strong>RS + Z + RSI + EMA</strong>
+                        <strong>RS + ML + ATR</strong>
                     </div>
                     <div>
                         <span>Risk</span>
@@ -59,8 +59,7 @@
                 </div>
                 <div class="scanner-actions">
                     <button id="refresh-btn" class="primary-btn" type="button">
-                        <span aria-hidden="true">Run</span>
-                        <span>Scan Live Market</span>
+                        <span>Run Live Market Scan</span>
                     </button>
                     <button id="export-btn" class="secondary-btn" type="button" disabled>
                         <span aria-hidden="true">CSV</span>
@@ -79,7 +78,7 @@
             <div class="scan-meta scan-meta-quad">
                 <div>
                     <span>Endpoint</span>
-                    <strong>https://aura-quant-pipeline.onrender.com</strong>
+                    <strong id="endpoint-url">http://127.0.0.1:8000</strong>
                 </div>
                 <div>
                     <span>Filters</span>
@@ -111,20 +110,21 @@
             <div class="table-wrap">
                 <table id="screener-table">
                     <thead>
-                        <tr>
-                            <th data-sort="Ticker" scope="col">Ticker</th>
-                            <th data-sort="Close_Price" scope="col">Close</th>
-                            <th data-sort="Alpha" scope="col">Alpha</th>
-                            <th data-sort="Beta" scope="col">Beta</th>
-                            <th data-sort="Log_RS" scope="col">Log RS</th>
-                            <th data-sort="Alpha_Weight_%" scope="col">Alpha Wt.</th>
-                            <th data-sort="Beta_Weight_%" scope="col">Beta Wt.</th>
-                            <th data-sort="Stop_Loss" scope="col">ATR Stop</th>
-                        </tr>
+                    <tr>
+                        <th data-sort="Ticker" scope="col">Ticker</th>
+                        <th data-sort="Close_Price" scope="col">Close</th>
+                        <th data-sort="Win_Probability" scope="col">Win Prob.</th>
+                        <th data-sort="Alpha" scope="col">Alpha</th>
+                        <th data-sort="Beta" scope="col">Beta</th>
+                        <th data-sort="Log_RS" scope="col">Log RS</th>
+                        <th data-sort="Alpha_Weight_%" scope="col">Alpha Wt.</th>
+                        <th data-sort="Beta_Weight_%" scope="col">Beta Wt.</th>
+                        <th data-sort="Stop_Loss" scope="col">ATR Stop</th>
+                    </tr>
                     </thead>
                     <tbody id="screener-body">
                         <tr class="empty-row">
-                            <td colspan="8">Run the scan to populate live candidates.</td>
+                            <td colspan="9">Run the scan to populate live candidates.</td>
                         </tr>
                     </tbody>
                 </table>

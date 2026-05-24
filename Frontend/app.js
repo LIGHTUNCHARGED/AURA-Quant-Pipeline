@@ -1,9 +1,11 @@
-const API_BASE = "https://aura-quant-pipeline.onrender.com/api";
+const LOCAL_API_BASE = "http://127.0.0.1:8000/api";
+const PROD_API_BASE = "https://aura-quant-pipeline.onrender.com/api";
+const API_BASE = resolveApiBase();
 let pollInterval = null; // Holds the timer for background polling
 
 const state = {
     rows: [],
-    sortKey: "Alpha_Weight_%",
+    sortKey: "Win_Probability",
     sortDirection: "desc",
     query: ""
 };
@@ -46,6 +48,11 @@ function bindScannerControls() {
     const exportBtn = document.getElementById("export-btn");
     const searchInput = document.getElementById("ticker-search");
     const headers = document.querySelectorAll("#screener-table th[data-sort]");
+    const endpointEl = document.getElementById("endpoint-url");
+
+    if (endpointEl) {
+        endpointEl.textContent = API_BASE.replace(/\/api$/, "");
+    }
 
     refreshBtn?.addEventListener("click", fetchData);
     exportBtn?.addEventListener("click", exportToCSV);
@@ -87,7 +94,7 @@ async function fetchData() {
         refreshBtn.disabled = true;
     }
     if (tableBody) {
-        tableBody.innerHTML = '<tr class="empty-row"><td colspan="8">Connecting to backend pipeline...</td></tr>';
+        tableBody.innerHTML = '<tr class="empty-row"><td colspan="9">Connecting to backend pipeline...</td></tr>';
     }
 
     try {
@@ -170,11 +177,11 @@ async function fetchFinalResults() {
 
         if (payload.status === "no_trades" || rows.length === 0) {
             setStatus("warning", "Scan complete. No stocks passed the strict quantitative filters today.");
-            renderRows();
+            renderRows("No stocks passed the strict quantitative filters today.");
             return;
         }
 
-        setStatus("success", `${rows.length} stock(s) passed every filter. Results are sorted by allocation weight.`);
+        setStatus("success", `${rows.length} stock(s) passed every filter. Results are sorted by win probability.`);
         renderRows();
     } catch (error) {
         console.error("Final fetch error:", error);
@@ -199,13 +206,17 @@ function renderRows(emptyMessage = "No matching tickers found.") {
 
     const visibleRows = getVisibleRows();
     if (visibleRows.length === 0) {
-        tableBody.innerHTML = `<tr class="empty-row"><td colspan="8">${emptyMessage}</td></tr>`;
+        tableBody.innerHTML = `<tr class="empty-row"><td colspan="9">${emptyMessage}</td></tr>`;
         return;
     }
 
     tableBody.innerHTML = visibleRows.map((stock, index) => `
-        <tr style="animation-delay: ${index * 35}ms"> <td class="ticker">${escapeHtml(stock.Ticker)}</td>
+        <tr style="animation-delay: ${index * 35}ms"> 
+            <td class="ticker">${escapeHtml(stock.Ticker)}</td>
             <td class="neutral">${formatCurrency(stock.Close_Price)}</td>
+            
+            <td class="prob-score ${getProbClass(stock.Win_Probability)}">${formatProbability(stock.Win_Probability)}</td>
+            
             <td class="${numberClass(stock.Alpha)}">${formatNumber(stock.Alpha, 5)}</td>
             <td class="neutral">${formatNumber(stock.Beta, 2)}</td>
             <td class="${numberClass(stock.Log_RS)}">${formatNumber(stock.Log_RS, 4)}</td>
@@ -247,8 +258,15 @@ function setStatus(type, message) {
 }
 
 function toNumber(value) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
+    const parsed = parseNumeric(value);
+    return parsed === null ? 0 : parsed;
+}
+
+function parseNumeric(value) {
+    const parsed = typeof value === "string"
+        ? parseFloat(value.replace(/[^0-9.-]/g, ""))
+        : Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
 }
 
 function formatNumber(value, digits) {
@@ -266,6 +284,15 @@ function formatPercent(value) {
     return Number.isFinite(number) ? `${number.toFixed(2)}%` : "-";
 }
 
+function formatProbability(value) {
+    if (value === null || value === undefined || value === "" || value === "N/A") {
+        return "N/A";
+    }
+
+    const number = parseNumeric(value);
+    return number === null ? "N/A" : `${number.toFixed(1)}%`;
+}
+
 function numberClass(value) {
     return Number(value) >= 0 ? "positive" : "negative";
 }
@@ -279,6 +306,16 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
+// Determines the color coding for ML predictions
+function getProbClass(probString) {
+    if (!probString || probString === "N/A") return "neutral";
+    const prob = toNumber(probString);
+
+    if (prob >= 65) return "prob-high"; // Strong signal
+    if (prob >= 50) return "prob-mid";  // Coin flip
+    return "prob-low";                  // Negative expectancy
+}
+
 function exportToCSV() {
     const visibleRows = getVisibleRows();
     if (visibleRows.length === 0) return;
@@ -286,6 +323,7 @@ function exportToCSV() {
     const headers = [
         "Ticker",
         "Close Price",
+        "Win Probability", // NEW
         "Alpha",
         "Beta",
         "Log RS",
@@ -300,6 +338,7 @@ function exportToCSV() {
             return [
                 stock.Ticker,
                 toNumber(stock.Close_Price).toFixed(2),
+                formatProbability(stock.Win_Probability),
                 toNumber(stock.Alpha).toFixed(5),
                 toNumber(stock.Beta).toFixed(2),
                 toNumber(stock.Log_RS).toFixed(4),
@@ -324,4 +363,26 @@ function exportToCSV() {
     downloadLink.click();
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(url);
+}
+
+function resolveApiBase() {
+    const params = new URLSearchParams(window.location.search);
+    let storedApiBase = null;
+    try {
+        storedApiBase = window.localStorage.getItem("quantApiBase");
+    } catch (error) {
+        storedApiBase = null;
+    }
+
+    const explicitApiBase = params.get("apiBase") || storedApiBase;
+    if (explicitApiBase) {
+        return explicitApiBase.replace(/\/$/, "").replace(/\/api$/, "") + "/api";
+    }
+
+    const host = window.location.hostname;
+    if (window.location.protocol === "file:" || host === "localhost" || host === "127.0.0.1" || host === "") {
+        return LOCAL_API_BASE;
+    }
+
+    return PROD_API_BASE;
 }
